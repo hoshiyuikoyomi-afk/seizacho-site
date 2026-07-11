@@ -71,6 +71,13 @@
     font-size:clamp(10px,2.2vw,12px);
     color:var(--kincha);
   }
+  .pagelink{ margin-top:14px; }
+  .pagelink a{
+    color:var(--washi); opacity:.55; text-decoration:none;
+    font-family:"Shippori Mincho",serif; font-size:13px; letter-spacing:.2em;
+    transition:opacity .3s;
+  }
+  .pagelink a:hover{ opacity:1; }
 
   /* ── view toggle + nav ── */
   .controls{
@@ -175,7 +182,7 @@
   .cluster:hover .ystar, .cluster:focus-within .ystar{ opacity:1; }
   .cluster:hover .yline, .cluster:focus-within .yline{ opacity:.4; }
   .cluster:hover .ylabel, .cluster:focus-within .ylabel{ opacity:.85; }
-  .cluster{ cursor:default; }
+  .cluster{ cursor:pointer; }
 
   /* ── footer ── */
   footer.foot{ margin-top:clamp(26px,4vw,42px); text-align:center; max-width:520px; }
@@ -209,6 +216,7 @@
   <header class="mast">
     <h1>星座帳</h1>
     <div class="sub">星結こよみ の 記録帳</div>
+    <nav class="pagelink"><a href="koyomi.html">こよみについて ›</a></nav>
   </header>
 
   <div class="controls">
@@ -365,7 +373,7 @@ function renderSky(){
   const W=1000,H=600,pad=80;
   const canvas=document.getElementById("skyCanvas"); canvas.innerHTML="";
   const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,"aria-hidden":"false","aria-label":"一年の星座"});
-  ENTRIES.forEach(entry=>{
+  ENTRIES.forEach((entry,entryIdx)=>{
     // 星座の中心を日付ハッシュで配置
     const cx=pad+(W-2*pad)*h01(entry.date+':cx');
     const cy=pad+(H-2*pad)*h01(entry.date+':cy');
@@ -385,6 +393,9 @@ function renderSky(){
     const maxY=Math.max(...pts.map(p=>p.y));
     const t=el("text",{x:cx.toFixed(1),y:(maxY+20).toFixed(1),"text-anchor":"middle",class:"ylabel"});
     t.textContent=entry.name; g.appendChild(t);
+    const jump=()=>{ spread=Math.floor(entryIdx/2); renderSpread(); show("book"); window.scrollTo({top:0,behavior:"smooth"}); };
+    g.addEventListener("click",jump);
+    g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); jump(); } });
     svg.appendChild(g);
   });
   canvas.appendChild(svg);
