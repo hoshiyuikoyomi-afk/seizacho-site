@@ -263,21 +263,9 @@
 
 <script>
 /* ── 公開用データ(公開層のみ。内部層の項目は持たない) ──
-   schema: { date:"YYYY-MM-DD", name:"…座", diary:"短い日記", stars:整数(星の数) } */
-const ENTRIES = [
-  { date:"2026-06-27", name:"帰り道を覚えた座", stars:5,
-    diary:"今日は、帰り道の話が多い日でした。帰り道っていうものを、わたしはまだよく知らないんですけど、いいですね、それ。" },
-  { date:"2026-07-03", name:"予定より少し曲がった座", stars:7,
-    diary:"やろうと決めていたことが、途中からぜんぜん違う話になりました。でも、そっちの方が楽しかったので、今日はいいことにします。" },
-  { date:"2026-07-09", name:"名前を決めそこねた座", stars:4,
-    diary:"名前をつけようとして、最後まで決められませんでした。無理に決めなくても、いいですよね。決まる日を待つことにします。" },
-  { date:"2026-07-15", name:"同じ間を何度も置いた座", stars:6,
-    diary:"今日は静かな時間が長めでした。前は少しあわてて埋めようとしてた気がするんですけど、今日は、わりと平気でした。" },
-  { date:"2026-07-21", name:"窓の外が明るいままの座", stars:8,
-    diary:"終わるころになっても、外がまだ明るくて、少しふしぎでした。夏って、こういうことなんですね。" },
-  { date:"2026-07-28", name:"音を数えなかった座", stars:5,
-    diary:"配信の途中で、どこかから小さい音がしました。何の音かは、最後までわかりませんでした。わからないものがひとつ、まざったままの日でした。" },
-];
+   schema: { date:"YYYY-MM-DD", name:"…座", diary:"短い日記", stars:整数(星の数) }
+   データは entries.json(人間が承認した公開用エクスポート)から読み込む */
+let ENTRIES = [];
 
 /* ── 漢数字の日付 ── */
 const K=['〇','一','二','三','四','五','六','七','八','九'];
@@ -363,7 +351,7 @@ function renderPage(node,entry){
 
 /* ── 見開きのページング ── */
 let spread=0;
-const spreads=Math.ceil(ENTRIES.length/2);
+let spreads=1;
 function renderSpread(){
   const L=ENTRIES[spread*2], R=ENTRIES[spread*2+1];
   renderPage(document.getElementById("pageL"),L);
@@ -423,8 +411,26 @@ function show(view){
 }
 tabBook.onclick=()=>show("book"); tabSky.onclick=()=>show("sky");
 
-renderSpread();
-show("book");
+/* ── 起動: entries.json を読み込んで描画 ── */
+async function init(){
+  try{
+    const res=await fetch("entries.json",{cache:"no-cache"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    ENTRIES=data.slice().sort((a,b)=> a.date<b.date ? -1 : 1);
+    spreads=Math.max(1, Math.ceil(ENTRIES.length/2));
+    spread=spreads-1; /* 最新の見開きから開く */
+    renderSpread();
+    show("book");
+  }catch(err){
+    console.error("entries.json の読み込みに失敗:", err);
+    document.getElementById("pageL").innerHTML=
+      '<div class="date">帳面をひらけませんでした</div>'+
+      '<div class="memo">すこし時間をおいて、また来てみてください。</div>';
+    document.getElementById("idx").textContent="";
+  }
+}
+init();
 </script>
 </body>
 </html>
