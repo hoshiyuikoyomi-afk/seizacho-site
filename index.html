@@ -297,15 +297,22 @@ function h01(str){
   h>>>=0; return h/4294967296;
 }
 
-/* ── 星の配置(グリッド+ハッシュのゆらぎ。手動指定・生成なし) ── */
-function placeStars(seed,count,W,H,pad){
+/* ── 星の種: hoshiトークン配列があればそれを、無ければ日付+連番を種にする ── */
+function starSeeds(entry){
+  if(entry.hoshi && entry.hoshi.length) return entry.hoshi;
+  return Array.from({length:entry.stars||0},(_,i)=> entry.date+':'+i);
+}
+
+/* ── 星の配置(グリッド+ハッシュのゆらぎ。点1つ=種1つ) ── */
+function placeStars(seeds,W,H,pad){
+  const count=seeds.length;
   const cols=Math.ceil(Math.sqrt(count)), rows=Math.ceil(count/cols);
   const cw=(W-2*pad)/cols, ch=(H-2*pad)/rows, pts=[];
   for(let i=0;i<count;i++){
     const gx=i%cols, gy=Math.floor(i/cols);
-    const x=pad+cw*(gx+0.18+0.64*h01(seed+':'+i+':x'));
-    const y=pad+ch*(gy+0.18+0.64*h01(seed+':'+i+':y'));
-    pts.push({x,y,r:0.8+1.1*h01(seed+':'+i+':r')});
+    const x=pad+cw*(gx+0.18+0.64*h01(seeds[i]+':x'));
+    const y=pad+ch*(gy+0.18+0.64*h01(seeds[i]+':y'));
+    pts.push({x,y,r:0.8+1.1*h01(seeds[i]+':r')});
   }
   return pts;
 }
@@ -327,7 +334,8 @@ function el(tag,attrs){ const e=document.createElementNS(NS,tag); for(const k in
 /* ── ページの星図SVG ── */
 function pageStarSVG(entry){
   const W=100,H=64,pad=12;
-  const pts=placeStars(entry.date, entry.stars, W,H,pad);
+  const seeds=starSeeds(entry);
+  const pts=placeStars(seeds,W,H,pad);
   const order=chain(pts);
   const svg=el("svg",{viewBox:`0 0 ${W} ${H}`, "aria-hidden":"true"});
   // lines
@@ -337,7 +345,7 @@ function pageStarSVG(entry){
   // stars
   pts.forEach((p,i)=>{
     const c=el("circle",{cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:p.r.toFixed(2),class:"cstar twinkle",tabindex:"0",role:"img"});
-    c.style.animationDelay=(h01(entry.date+':d'+i)*6).toFixed(2)+"s";
+    c.style.animationDelay=(h01(seeds[i]+':d')*6).toFixed(2)+"s";
     svg.appendChild(c);
   });
   return svg;
@@ -391,11 +399,12 @@ function renderSky(){
     const cx=pad+(W-2*pad)*h01(entry.date+':cx');
     const cy=pad+(H-2*pad)*h01(entry.date+':cy');
     const scatter=42; // 群れの広がり
+    const seeds=starSeeds(entry);
     const pts=[];
-    for(let i=0;i<entry.stars;i++){
-      const a=h01(entry.date+':'+i+':a')*Math.PI*2;
-      const rr=(0.35+0.65*h01(entry.date+':'+i+':rr'))*scatter;
-      pts.push({ x:cx+Math.cos(a)*rr, y:cy+Math.sin(a)*rr, r:1.4+1.6*h01(entry.date+':'+i+':r') });
+    for(let i=0;i<seeds.length;i++){
+      const a=h01(seeds[i]+':a')*Math.PI*2;
+      const rr=(0.35+0.65*h01(seeds[i]+':rr'))*scatter;
+      pts.push({ x:cx+Math.cos(a)*rr, y:cy+Math.sin(a)*rr, r:1.4+1.6*h01(seeds[i]+':r2') });
     }
     const order=chain(pts);
     const g=el("g",{class:"cluster",tabindex:"0",role:"group","aria-label":entry.name});
