@@ -17,7 +17,8 @@
     --hana:#B23A32;        /* 花刺繍の紅(差し色) */
     --sumi:#2E2A26;
     --sumi-soft:#5c554c;
-    --kincha:#B08A4A;      /* 刺繍の金 */
+    --kincha:#806F60;      /* 温かい中間色 */
+    --kuro:#202124;        /* 近未来側の黒 */
     --yozora:#17130E;      /* 温かい墨夜 */
     --yozora-2:#211B13;
     --star:#F3EDE1;
@@ -36,7 +37,7 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    padding:clamp(18px,4vw,48px) 16px 40px;
+    padding:clamp(18px,4vw,44px) 16px 40px;
     overflow-x:hidden;
     position:relative;
   }
@@ -58,7 +59,11 @@
   .wrap{ position:relative; z-index:1; width:100%; max-width:940px; display:flex; flex-direction:column; align-items:center; }
 
   /* ── masthead ── */
-  header.mast{ text-align:center; margin-bottom:clamp(20px,3.5vw,34px); }
+  header.mast{ text-align:center; margin-bottom:clamp(18px,3.2vw,30px); width:100%; }
+  .mast .eyebrow{
+    margin-bottom:10px; font-family:"Zen Kaku Gothic New",sans-serif; font-weight:400;
+    font-size:10px; letter-spacing:.28em; text-indent:.28em; color:var(--shinku);
+  }
   .mast h1{
     font-weight:500; letter-spacing:.42em;
     font-size:clamp(22px,4.4vw,30px);
@@ -72,34 +77,50 @@
     font-size:clamp(10px,2.2vw,12px);
     color:var(--kincha);
   }
-  .pagelink{ margin-top:14px; }
-  .pagelink a{
-    color:var(--sumi); opacity:.55; text-decoration:none;
-    font-family:"Shippori Mincho",serif; font-size:13px; letter-spacing:.2em;
-    transition:opacity .3s;
+  .mast .intro{
+    margin:18px auto 0; max-width:42em;
+    font-family:"Klee One","Shippori Mincho",serif; font-size:clamp(13px,2.2vw,14.5px);
+    line-height:1.9; color:var(--sumi-soft);
   }
-  .pagelink a:hover{ opacity:1; }
+
+  .site-nav{
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%; max-width:620px;
+    margin:clamp(18px,3vw,26px) auto 0; border-top:1px solid rgba(46,42,38,.16);
+    border-bottom:1px solid rgba(46,42,38,.16);
+  }
+  .site-nav button,.site-nav a{
+    min-height:56px; padding:9px 10px; border:0; background:transparent; color:var(--sumi-soft);
+    text-decoration:none; cursor:pointer; display:flex; flex-direction:column; justify-content:center;
+    align-items:center; gap:2px; font-family:"Shippori Mincho",serif; font-size:14px;
+    letter-spacing:.12em; transition:background .25s,color .25s;
+  }
+  .site-nav > * + *{ border-left:1px solid rgba(46,42,38,.12); }
+  .site-nav small{
+    font-family:"Zen Kaku Gothic New",sans-serif; font-size:9.5px; letter-spacing:.12em;
+    color:var(--kincha); font-weight:400;
+  }
+  .site-nav button:hover,.site-nav a:hover{ background:rgba(255,255,255,.28); color:var(--sumi); }
+  .site-nav button[aria-current]{ color:var(--shinku); background:rgba(134,36,44,.045); }
 
   /* ── view toggle + nav ── */
   .controls{
-    width:100%; display:flex; align-items:center; justify-content:space-between;
-    gap:16px; margin-bottom:clamp(14px,2.6vw,22px); flex-wrap:wrap;
+    width:100%; display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+    gap:16px; margin-bottom:clamp(14px,2.6vw,22px);
   }
-  .views{ display:flex; gap:2px; align-items:baseline; }
-  .views button{
-    background:none; border:none; cursor:pointer;
-    font-family:"Shippori Mincho", serif; font-size:15px;
-    letter-spacing:.24em; text-indent:.24em; padding:6px 12px;
-    color:var(--sumi-soft); opacity:.55; transition:opacity .4s, color .4s;
+  .latest-button{
+    justify-self:start; border:0; background:none; color:var(--shinku); cursor:pointer;
+    font-family:"Zen Kaku Gothic New",sans-serif; font-size:11px; letter-spacing:.12em;
+    padding:8px 4px; opacity:.82;
   }
-  .views button[aria-selected="true"]{ color:var(--sumi); opacity:1; }
-  .views .div{ color:var(--sumi-soft); opacity:.4; font-size:12px; }
+  .latest-button[hidden]{ display:block; visibility:hidden; }
 
-  .pager{ display:flex; align-items:center; gap:14px; }
+  .pager{ display:flex; align-items:center; gap:12px; grid-column:2; }
+  .pager .where{ display:flex; flex-direction:column; align-items:center; min-width:130px; gap:2px; }
   .pager .idx{
     font-family:"Zen Kaku Gothic New", sans-serif; font-weight:300;
-    font-size:12px; letter-spacing:.2em; color:var(--kincha); min-width:52px; text-align:center;
+    font-size:11px; letter-spacing:.18em; color:var(--shinku); min-width:52px; text-align:center;
   }
+  .pager .range{ font-family:"Zen Kaku Gothic New",sans-serif; font-size:10px; letter-spacing:.08em; color:var(--kincha); }
   .pager button{
     background:none; border:none; cursor:pointer; color:var(--sumi);
     font-size:20px; line-height:1; padding:6px 8px; opacity:.75; transition:opacity .3s;
@@ -131,19 +152,25 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
     mix-blend-mode:multiply;
   }
-  /* gutter shadow + 和綴じ cord */
+  /* gutter shadow */
   .book::after{
     content:""; position:absolute; top:0; bottom:0; left:50%; width:60px; transform:translateX(-50%);
     z-index:1; pointer-events:none;
     background:linear-gradient(90deg, transparent, rgba(90,70,45,.16) 42%, rgba(90,70,45,.22) 50%, rgba(90,70,45,.16) 58%, transparent);
   }
-  .cord{ position:absolute; top:0; bottom:0; left:50%; width:2px; transform:translateX(-50%); z-index:2; background:var(--shinku); opacity:.72; }
+  /* 赤紐は見開き中央ではなく、帳面の外縁に置く */
+  .cord{ position:absolute; top:0; bottom:0; left:14px; width:2px; z-index:3; background:var(--shinku); opacity:.58; }
   .cord i{ position:absolute; left:50%; transform:translateX(-50%); width:11px; height:2px; background:var(--shinku); opacity:.8; border-radius:1px; }
+  .cord i:nth-child(1){ top:18%; }
+  .cord i:nth-child(2){ top:38%; }
+  .cord i:nth-child(3){ top:58%; }
+  .cord i:nth-child(4){ top:78%; }
 
   .page{ position:relative; z-index:2; padding:clamp(22px,3.4vw,40px) clamp(20px,3.2vw,38px); min-height:clamp(360px,52vw,480px); display:flex; flex-direction:column; }
   .page.left{ padding-right:clamp(30px,4vw,52px); }
   .page.right{ padding-left:clamp(30px,4vw,52px); }
   .page.blank .date, .page.blank .field, .page.blank .memo, .page.blank .naming{ visibility:hidden; }
+  .page[hidden]{ display:none; }
 
   .date{
     font-size:clamp(16px,2.6vw,20px); font-weight:500; color:var(--sumi);
@@ -170,29 +197,44 @@
     transition:opacity .3s;
   }
   .vodlink a:hover{ opacity:1; }
+  .entry-meta{ margin-top:12px; display:flex; flex-wrap:wrap; gap:10px 16px; }
+  .entry-meta a{
+    font-family:"Zen Kaku Gothic New",sans-serif; font-size:10.5px; letter-spacing:.1em;
+    color:var(--sumi-soft); opacity:.72; text-decoration:none;
+    border-bottom:1px solid rgba(92,85,76,.28);
+  }
+  .entry-meta a:hover{ opacity:1; }
   .yohaku{ flex:1 1 auto; min-height:24px; } /* 余白 */
 
   /* star points / lines */
   .cline{ stroke:var(--sumi); stroke-width:.3; opacity:.42; fill:none; stroke-linecap:round; }
-  .cstar{ fill:var(--sumi); transition:fill .5s ease, r .5s ease; }
-  .cstar:hover, .cstar:focus{ fill:var(--hana); } /* touched, but says nothing */
+  .cstar{ fill:var(--sumi); }
   .twinkle{ animation:tw 6s ease-in-out infinite; }
   @keyframes tw{ 0%,100%{ opacity:.9; } 50%{ opacity:.55; } }
 
   /* ── year sky ── */
   .sky{
     width:100%; position:relative; display:none;
-    background:radial-gradient(900px 600px at 50% 0%, #2A2218 0%, var(--yozora-2) 45%, var(--yozora) 100%);
-    border-radius:6px;
-    padding:clamp(20px,3.6vw,32px) clamp(14px,2.6vw,24px) clamp(14px,2.6vw,22px);
-    box-shadow:0 22px 44px -22px rgba(80,60,30,.45), 0 2px 8px rgba(80,60,30,.18);
+    background:radial-gradient(ellipse at 50% 45%, var(--yozora-2) 0%, var(--yozora) 64%, rgba(23,19,14,0) 100%);
+    padding:clamp(28px,4.4vw,42px) clamp(20px,4vw,46px) clamp(26px,4vw,38px);
     animation:rise 1.1s cubic-bezier(.2,.7,.2,1) both;
   }
+  .sky-head{ display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:12px; }
+  .sky-years{ display:flex; gap:4px; justify-content:center; flex-wrap:wrap; }
+  .sky-years button{
+    border:0; border-bottom:1px solid transparent; background:transparent;
+    color:rgba(243,237,225,.62); font-family:"Zen Kaku Gothic New",sans-serif;
+    font-size:10px; letter-spacing:.12em; padding:5px 10px; cursor:pointer;
+  }
+  .sky-years button[aria-pressed="true"]{ color:var(--washi); border-bottom-color:rgba(243,237,225,.48); }
   .sky.on{ display:block; }
   .book.off{ display:none; }
   .sky-title{ text-align:center; letter-spacing:.36em; text-indent:.36em; font-size:clamp(15px,2.8vw,19px); color:var(--washi); margin-bottom:6px; }
   .sky-note{ text-align:center; font-family:"Zen Kaku Gothic New",sans-serif; font-weight:300; font-size:11px; letter-spacing:.16em; color:var(--kincha); margin-bottom:16px; }
   .sky svg{ width:100%; height:auto; display:block; }
+  .sky-scroll{ width:100%; }
+  /* 旧・月別レイアウトの区画線は描画しない */
+  .sky .month-cell,.sky .month-label{ display:none !important; }
   .sky .yline{ stroke:var(--star); stroke-width:.7; opacity:.16; fill:none; stroke-linecap:round; }
   .cluster .ystar{ fill:var(--star); opacity:.62; transition:opacity .5s, fill .5s; }
   .cluster .ylabel{ fill:var(--star); opacity:.30; font-family:"Shippori Mincho",serif; font-size:13px; letter-spacing:.06em; transition:opacity .5s; }
@@ -209,16 +251,24 @@
     opacity:.85;
   }
   footer.foot .line.dim{ color:var(--kincha); opacity:.7; font-size:11px; margin-top:6px; }
+  footer.foot .links{ margin-top:14px; display:flex; gap:20px; justify-content:center; }
+  footer.foot a{ color:var(--shinku); text-decoration:none; font-size:11px; letter-spacing:.12em; }
 
   /* ── mobile: pages stack, book becomes single-page metaphor ── */
   @media (max-width:640px){
     .book{ grid-template-columns:1fr; }
-    .book::after, .cord{ display:none; }
-    .page.left{ padding-right:clamp(20px,3.2vw,38px); border-bottom:1px solid rgba(90,70,45,.18); }
+    .book::after{ display:none; }
+    .page.left{ padding-right:clamp(20px,3.2vw,38px); }
     .page.right{ padding-left:clamp(20px,3.2vw,38px); }
     .page{ min-height:auto; padding-top:clamp(26px,7vw,34px); padding-bottom:clamp(26px,7vw,34px); }
     .memo{ max-width:none; }
-    .controls{ justify-content:center; }
+    .controls{ grid-template-columns:1fr; }
+    .latest-button{ display:none !important; }
+    .pager{ grid-column:1; justify-content:space-between; width:100%; }
+    .pager .where{ min-width:110px; }
+    .site-nav button,.site-nav a{ min-height:52px; font-size:12.5px; letter-spacing:.06em; padding:7px 5px; }
+    .site-nav small{ font-size:8.5px; letter-spacing:.05em; }
+    .mast .intro{ text-align:left; max-width:31em; }
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -231,42 +281,48 @@
 
 <div class="wrap">
   <header class="mast">
+    <div class="eyebrow">HOSHIYUI KOYOMI</div>
     <h1>星座帳</h1>
     <div class="sub">星結こよみ の 記録帳</div>
-    <nav class="pagelink"><a href="koyomi.html">こよみについて ›</a></nav>
+    <p class="intro">いくつかの出来事が、あとから一つの形に見えた日だけ、名前をつけて残しています。</p>
+    <nav class="site-nav" aria-label="星座帳の案内">
+      <button id="tab-book" type="button" aria-current="page"><span>星座帳</span><small>記録を読む</small></button>
+      <button id="tab-sky" type="button"><span>一年の空</span><small>星座をたどる</small></button>
+      <a href="koyomi.html"><span>こよみについて</span><small>帳面のもちぬし</small></a>
+    </nav>
   </header>
 
-  <div class="controls">
-    <div class="views" role="tablist" aria-label="表示の切り替え">
-      <button id="tab-book" role="tab" aria-selected="true">見開き</button>
-      <span class="div" aria-hidden="true">・</span>
-      <button id="tab-sky" role="tab" aria-selected="false">空</button>
-    </div>
+  <div class="controls" id="bookControls">
+    <button class="latest-button" id="latest" type="button">最新の星座へ</button>
     <div class="pager" id="pager">
-      <button id="prev" aria-label="前の見開き">‹</button>
-      <span class="idx" id="idx"></span>
-      <button id="next" aria-label="次の見開き">›</button>
+      <button id="prev" type="button" aria-label="前の星座">‹</button>
+      <span class="where"><span class="idx" id="idx"></span><span class="range" id="range"></span></span>
+      <button id="next" type="button" aria-label="次の星座">›</button>
     </div>
   </div>
 
   <!-- spread -->
   <section class="book" id="book" aria-label="星座帳の見開き">
-    <span class="cord" aria-hidden="true"><i style="top:18%"></i><i style="top:38%"></i><i style="top:58%"></i><i style="top:78%"></i></span>
+    <span class="cord" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
     <div class="page left"  id="pageL"></div>
     <div class="page right" id="pageR"></div>
   </section>
 
   <!-- year sky -->
   <section class="sky" id="sky" aria-label="一年の空" hidden>
-    <div class="sky-title" id="skyTitle"></div>
-    <div class="sky-note">一年分の星が、ひとつの空に集まる</div>
-    <div id="skyCanvas"></div>
+    <div class="sky-head">
+      <div class="sky-title" id="skyTitle"></div>
+      <div class="sky-note">一年分の星が、ひとつの空に集まる</div>
+      <div class="sky-years" id="skyYears" role="group" aria-label="年を選ぶ"></div>
+    </div>
+    <div class="sky-scroll" id="skyCanvas"></div>
   </section>
 
   <footer class="foot">
-    <div class="line">名前のついた星座だけが、ここに残ります。</div>
-    <div class="line dim">点はその日の出来事の数。ひとつずつは、語られません。</div>
+    <div class="line">いくつかの出来事が、一つの形に見えた日だけここに残ります。</div>
+    <div class="line dim">点はその日の出来事の数。個別の誰かや言葉は公開しません。</div>
     <div class="line dim">※ 掲載中の星座はローンチ用のサンプルです</div>
+    <div class="links"><a href="https://x.com/h_koyomi_ai" rel="noopener">X</a><a href="koyomi.html">こよみについて</a></div>
   </footer>
 </div>
 
@@ -371,34 +427,77 @@ function renderPage(node,entry){
     a.textContent="この日の配信 ›";
     v.appendChild(a); node.appendChild(v);
   }
+  const meta=document.createElement("div"); meta.className="entry-meta";
+  const permalink=document.createElement("a");
+  permalink.href=`?date=${encodeURIComponent(entry.date)}`;
+  permalink.textContent="この星座へのリンク";
+  meta.appendChild(permalink); node.appendChild(meta);
   node.appendChild(yohaku);
 }
 
 /* ── 見開きのページング ── */
+const mobileView=window.matchMedia("(max-width:640px)");
+let perView=mobileView.matches?1:2;
 let spread=0;
 let spreads=1;
+function itemsPerView(){ return mobileView.matches?1:2; }
+function recalcSpreads(){ perView=itemsPerView(); spreads=Math.max(1,Math.ceil(ENTRIES.length/perView)); }
+function pageForEntry(index){ return Math.floor(index/perView); }
+function updatePageUrl(entry){
+  if(!entry) return;
+  const u=new URL(window.location.href); u.searchParams.delete("view"); u.searchParams.set("date",entry.date);
+  history.replaceState(null,"",u);
+}
+function updateViewUrl(view){
+  const u=new URL(window.location.href);
+  if(view==="sky"){ u.searchParams.set("view","sky"); u.searchParams.delete("date"); }
+  else u.searchParams.delete("view");
+  history.replaceState(null,"",u);
+}
 function renderSpread(){
-  const L=ENTRIES[spread*2], R=ENTRIES[spread*2+1];
+  const start=spread*perView;
+  const L=ENTRIES[start], R=perView===2?ENTRIES[start+1]:null;
+  document.getElementById("pageR").hidden=perView===1;
   renderPage(document.getElementById("pageL"),L);
   renderPage(document.getElementById("pageR"),R);
   document.getElementById("idx").textContent=kNum(spread+1)+" / "+kNum(spreads);
+  const shown=[L,R].filter(Boolean);
+  document.getElementById("range").textContent=shown.length>1?`${kDate(L.date)} — ${kDate(R.date)}`:(L?kDate(L.date):"");
   const prev=document.getElementById("prev"), next=document.getElementById("next");
   prev.setAttribute("aria-disabled", spread<=0);
   next.setAttribute("aria-disabled", spread>=spreads-1);
+  document.getElementById("latest").hidden=spread>=spreads-1;
 }
-document.getElementById("prev").onclick=()=>{ if(spread>0){spread--;renderSpread();} };
-document.getElementById("next").onclick=()=>{ if(spread<spreads-1){spread++;renderSpread();} };
+function movePage(delta){
+  const nextPage=Math.max(0,Math.min(spreads-1,spread+delta));
+  if(nextPage===spread) return;
+  spread=nextPage; renderSpread(); updatePageUrl(ENTRIES[spread*perView]);
+}
+document.getElementById("prev").onclick=()=>movePage(-1);
+document.getElementById("next").onclick=()=>movePage(1);
+document.getElementById("latest").onclick=()=>{ spread=spreads-1; renderSpread(); updatePageUrl(ENTRIES[ENTRIES.length-1]); };
 
 /* ── 年間ビュー(一枚の空) ── */
+let selectedYear=null;
+function renderYearButtons(){
+  const years=[...new Set(ENTRIES.map(e=>e.date.slice(0,4)))].sort();
+  const host=document.getElementById("skyYears"); host.innerHTML="";
+  years.forEach(year=>{
+    const b=document.createElement("button"); b.type="button"; b.textContent=year;
+    b.setAttribute("aria-pressed",year===selectedYear);
+    b.onclick=()=>{ selectedYear=year; renderSky(); };
+    host.appendChild(b);
+  });
+}
 function renderSky(){
   const W=1000,H=600,pad=80;
   const canvas=document.getElementById("skyCanvas"); canvas.innerHTML="";
   const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,"aria-hidden":"false","aria-label":"一年の星座"});
-  ENTRIES.forEach((entry,entryIdx)=>{
-    // 星座の中心を日付ハッシュで配置
+  const yearEntries=ENTRIES.map((entry,index)=>({entry,index})).filter(x=>x.entry.date.startsWith(selectedYear+"-"));
+  yearEntries.forEach(({entry, index:entryIdx})=>{
     const cx=pad+(W-2*pad)*h01(entry.date+':cx');
     const cy=pad+(H-2*pad)*h01(entry.date+':cy');
-    const scatter=42; // 群れの広がり
+    const scatter=42;
     const seeds=starSeeds(entry);
     const pts=[];
     for(let i=0;i<seeds.length;i++){
@@ -415,27 +514,29 @@ function renderSky(){
     const maxY=Math.max(...pts.map(p=>p.y));
     const t=el("text",{x:cx.toFixed(1),y:(maxY+20).toFixed(1),"text-anchor":"middle",class:"ylabel"});
     t.textContent=entry.name; g.appendChild(t);
-    const jump=()=>{ spread=Math.floor(entryIdx/2); renderSpread(); show("book"); window.scrollTo({top:0,behavior:"smooth"}); };
+    const jump=()=>{ spread=pageForEntry(entryIdx); renderSpread(); show("book"); updatePageUrl(entry); window.scrollTo({top:0,behavior:"smooth"}); };
     g.addEventListener("click",jump);
     g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); jump(); } });
     svg.appendChild(g);
   });
   canvas.appendChild(svg);
-  document.getElementById("skyTitle").textContent=kYear(ENTRIES[0].date)+"の空";
+  document.getElementById("skyTitle").textContent=[...selectedYear].map(c=>K[+c]).join("")+"年の空";
+  renderYearButtons();
 }
 
 /* ── ビュー切り替え ── */
 const tabBook=document.getElementById("tab-book"), tabSky=document.getElementById("tab-sky");
-const book=document.getElementById("book"), sky=document.getElementById("sky"), pager=document.getElementById("pager");
+const book=document.getElementById("book"), sky=document.getElementById("sky"), bookControls=document.getElementById("bookControls");
 function show(view){
   const isBook=view==="book";
-  tabBook.setAttribute("aria-selected",isBook); tabSky.setAttribute("aria-selected",!isBook);
+  tabBook.toggleAttribute("aria-current",isBook); tabSky.toggleAttribute("aria-current",!isBook);
   book.classList.toggle("off",!isBook); book.toggleAttribute("hidden",!isBook);
   sky.classList.toggle("on",!isBook); sky.toggleAttribute("hidden",isBook);
-  pager.style.visibility=isBook?"visible":"hidden";
+  bookControls.hidden=!isBook;
   if(!isBook) renderSky();
 }
-tabBook.onclick=()=>show("book"); tabSky.onclick=()=>show("sky");
+tabBook.onclick=()=>{ show("book"); updateViewUrl("book"); };
+tabSky.onclick=()=>{ show("sky"); updateViewUrl("sky"); };
 
 /* ── 起動: entries.json を読み込んで描画 ── */
 async function init(){
@@ -444,10 +545,13 @@ async function init(){
     if(!res.ok) throw new Error("HTTP "+res.status);
     const data=await res.json();
     ENTRIES=data.slice().sort((a,b)=> a.date<b.date ? -1 : 1);
-    spreads=Math.max(1, Math.ceil(ENTRIES.length/2));
-    spread=spreads-1; /* 最新の見開きから開く */
+    recalcSpreads();
+    selectedYear=ENTRIES.length?ENTRIES[ENTRIES.length-1].date.slice(0,4):String(new Date().getFullYear());
+    const requested=new URLSearchParams(location.search).get("date");
+    const requestedIndex=ENTRIES.findIndex(e=>e.date===requested);
+    spread=requestedIndex>=0?pageForEntry(requestedIndex):spreads-1;
     renderSpread();
-    show("book");
+    show(new URLSearchParams(location.search).get("view")==="sky"?"sky":"book");
   }catch(err){
     console.error("entries.json の読み込みに失敗:", err);
     document.getElementById("pageL").innerHTML=
@@ -456,6 +560,10 @@ async function init(){
     document.getElementById("idx").textContent="";
   }
 }
+mobileView.addEventListener("change",()=>{
+  const currentIndex=Math.min(spread*perView,Math.max(0,ENTRIES.length-1));
+  recalcSpreads(); spread=pageForEntry(currentIndex); renderSpread();
+});
 init();
 </script>
 </body>
