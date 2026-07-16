@@ -236,11 +236,14 @@
   /* 旧・月別レイアウトの区画線は描画しない */
   .sky .month-cell,.sky .month-label{ display:none !important; }
   .sky .yline{ stroke:var(--star); stroke-width:.7; opacity:.16; fill:none; stroke-linecap:round; }
+  .cluster-hit{ fill:transparent; pointer-events:all; }
   .cluster .ystar{ fill:var(--star); opacity:.62; transition:opacity .5s, fill .5s; }
+  .cluster .yline,.cluster .ystar,.cluster .ylabel{ pointer-events:none; }
   .cluster .ylabel{ fill:var(--star); opacity:.30; font-family:"Shippori Mincho",serif; font-size:13px; letter-spacing:.06em; transition:opacity .5s; }
   .cluster:hover .ystar, .cluster:focus-within .ystar{ opacity:1; }
   .cluster:hover .yline, .cluster:focus-within .yline{ opacity:.4; }
   .cluster:hover .ylabel, .cluster:focus-within .ylabel{ opacity:.85; }
+  .cluster:focus-visible .cluster-hit{ stroke:rgba(243,237,225,.45); stroke-width:1; }
   .cluster{ cursor:pointer; }
 
   /* ── footer ── */
@@ -489,14 +492,42 @@ function renderYearButtons(){
     host.appendChild(b);
   });
 }
+
+/* ── 星座の中心配置: ランダム感を保ちつつ、操作領域だけは重ねすぎない ── */
+function placeClusters(items,W,H,pad){
+  const area=(W-2*pad)*(H-2*pad);
+  const minDistance=Math.max(60,Math.min(80,Math.sqrt(area/Math.max(items.length,1))*.72));
+  const hitRadius=Math.max(26,minDistance/2-4);
+  const centers=[];
+
+  items.forEach(({entry})=>{
+    const baseX=h01(entry.date+':cluster:x');
+    const baseY=h01(entry.date+':cluster:y');
+    let best=null, bestDistance=-1;
+    for(let attempt=0;attempt<192;attempt++){
+      const candidate={
+        x:pad+(W-2*pad)*((baseX+attempt*.61803398875)%1),
+        y:pad+(H-2*pad)*((baseY+attempt*.75487766625)%1)
+      };
+      const nearest=centers.length
+        ? Math.min(...centers.map(p=>Math.hypot(candidate.x-p.x,candidate.y-p.y)))
+        : Infinity;
+      if(nearest>bestDistance){ best={...candidate,hitRadius}; bestDistance=nearest; }
+      if(nearest>=minDistance) break;
+    }
+    centers.push(best);
+  });
+  return centers;
+}
+
 function renderSky(){
   const W=1000,H=600,pad=80;
   const canvas=document.getElementById("skyCanvas"); canvas.innerHTML="";
   const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,"aria-hidden":"false","aria-label":"一年の星座"});
   const yearEntries=ENTRIES.map((entry,index)=>({entry,index})).filter(x=>x.entry.date.startsWith(selectedYear+"-"));
-  yearEntries.forEach(({entry, index:entryIdx})=>{
-    const cx=pad+(W-2*pad)*h01(entry.date+':cx');
-    const cy=pad+(H-2*pad)*h01(entry.date+':cy');
+  const centers=placeClusters(yearEntries,W,H,pad);
+  yearEntries.forEach(({entry, index:entryIdx},entryNo)=>{
+    const {x:cx,y:cy,hitRadius}=centers[entryNo];
     const scatter=42;
     const seeds=starSeeds(entry);
     const pts=[];
@@ -506,7 +537,8 @@ function renderSky(){
       pts.push({ x:cx+Math.cos(a)*rr, y:cy+Math.sin(a)*rr, r:1.4+1.6*h01(seeds[i]+':r2') });
     }
     const order=chain(pts);
-    const g=el("g",{class:"cluster",tabindex:"0",role:"group","aria-label":entry.name});
+    const g=el("g",{class:"cluster",tabindex:"0",role:"button","aria-label":entry.name});
+    g.appendChild(el("circle",{cx:cx.toFixed(1),cy:cy.toFixed(1),r:hitRadius.toFixed(1),class:"cluster-hit"}));
     let dd=""; order.forEach((idx,i)=>{ const p=pts[idx]; dd+=(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)+" "; });
     g.appendChild(el("path",{d:dd.trim(),class:"yline"}));
     pts.forEach(p=> g.appendChild(el("circle",{cx:p.x.toFixed(1),cy:p.y.toFixed(1),r:p.r.toFixed(1),class:"ystar"})));
