@@ -254,7 +254,7 @@
   .cluster .ystar{ fill:var(--star); opacity:.95; stroke:rgba(247,244,237,.48); stroke-width:.45; vector-effect:non-scaling-stroke; transition:opacity .5s, fill .5s; }
   .cluster .yline,.cluster .ystar,.cluster .ylabel{ pointer-events:none; }
   .cluster .ylabel{ display:none; }
-  .sky-label{ position:absolute; display:flex; align-items:center; justify-content:center; min-height:44px; padding:7px 10px; color:rgba(225,232,239,.70); font-family:"Shippori Mincho",serif; font-size:12px; line-height:1.35; letter-spacing:.04em; text-align:center; text-decoration:none; white-space:normal; z-index:3; text-shadow:none; }
+  .sky-label{ position:absolute; display:flex; align-items:center; justify-content:center; min-height:44px; padding:7px 6px; color:rgba(225,232,239,.70); font-family:"Shippori Mincho",serif; font-size:11px; line-height:1.4; letter-spacing:.04em; text-align:center; text-decoration:none; white-space:normal; z-index:3; text-shadow:none; }
   .sky-label:hover,.sky-label:focus-visible,.sky-label.active{ color:#eeeef0; text-shadow:none; }
   .cluster.active .ystar{ opacity:1; stroke:rgba(255,250,240,.62); stroke-width:.55; }
   .cluster.active .yline{ opacity:.82; }
@@ -295,7 +295,7 @@
     .site-nav small{ font-size:8.5px; letter-spacing:.05em; }
     .mast .intro{ text-align:left; max-width:31em; }
     .sky-map{ min-height:390px; }
-    .sky-label{ max-width:142px; font-size:12px; }
+  .sky-label{ max-width:104px; font-size:11px; }
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -600,87 +600,80 @@ function renderSky(){
 function layoutSkyLabels(){
   const map=document.querySelector(".sky-map"), svg=map&&map.querySelector(":scope > svg");
   if(!map||!svg||!map.clientWidth) return;
-  const width=map.clientWidth;
+  const width=map.clientWidth, scale=width/1000, svgH=600*scale;
   const labels=[...map.querySelectorAll(".sky-label")];
   const clusters=[...svg.querySelectorAll(".cluster")];
-  map.style.minHeight="0";
-  const labelWidth=Math.min(width<600?142:176,width-16);
+  map.classList.remove("crowded"); map.style.minHeight="0";
+  const labelWidth=Math.min(width<440?104:180,(width-20)/2);
   labels.forEach(label=>{ label.style.width=labelWidth+"px"; });
-  // The stored point geometry is unchanged. Only the annual presentation moves
-  // and uniformly scales each whole constellation, with its name directly below.
-  clusters.forEach(g=>g.removeAttribute("transform"));
-  const native=clusters.map(g=>{const b=g.getBBox();return {x:b.x,y:b.y,w:b.width,h:b.height};});
-  const scale=Math.min(width<600?1.12:1.45,(labelWidth-12)/Math.max(1,...native.map(b=>b.w)));
-  const items=labels.map((label,i)=>({w:labelWidth,h:native[i].h*scale+8+Math.max(44,label.offsetHeight),starH:native[i].h*scale}));
-  const anchors=labels.map(label=>({x:+label.dataset.cx,y:+label.dataset.cy}));
-  const minX=Math.min(...anchors.map(p=>p.x)), maxX=Math.max(...anchors.map(p=>p.x));
-  const minY=Math.min(...anchors.map(p=>p.y)), maxY=Math.max(...anchors.map(p=>p.y));
-  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+  const sizes=labels.map(label=>({w:labelWidth,h:Math.max(44,label.offsetHeight)}));
+  const anchors=labels.map(label=>({x:+label.dataset.cx*scale,y:+label.dataset.cy*scale}));
+  // Preserve the original center positions and map proportions. A small uniform
+  // enlargement improves visibility without redistributing the constellations.
+  const glyphScale=1.22;
+  svg.setAttribute("viewBox","0 0 1000 600");
+  clusters.forEach((g,i)=>{
+    const cx=+labels[i].dataset.cx, cy=+labels[i].dataset.cy;
+    g.setAttribute("transform",`translate(${cx} ${cy}) scale(${glyphScale}) translate(${-cx} ${-cy})`);
+  });
+  const bounds=clusters.map((g,i)=>{
+    const b=g.getBBox(),cx=+labels[i].dataset.cx,cy=+labels[i].dataset.cy;
+    return {x:(cx+(b.x-cx)*glyphScale)*scale-6,y:(cy+(b.y-cy)*glyphScale)*scale-6,w:b.width*glyphScale*scale+12,h:b.height*glyphScale*scale+12};
+  });
   const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
-  const columns=Math.min(Math.max(1,items.length),Math.max(1,Math.floor((width-8+18)/(labelWidth+18))));
-  const rows=Math.ceil(items.length/columns);
-  let mapH=items.length?Math.max(items.length===1?240:420,rows*(Math.max(...items.map(p=>p.h))+24)+32):180;
-  let positions=null;
-  const order=items.map((_,i)=>i).sort((a,b)=>items[b].h-items[a].h||anchors[a].y-anchors[b].y);
-  if(width<600&&items.length){
-    // A narrow sky uses staggered columns so each enlarged glyph and its name
-    // remain together without sending later entries far down an empty canvas.
-    positions=[];
-    const gap=18, colW=(width-8-gap*(columns-1))/columns;
-    const bottoms=Array.from({length:columns},(_,i)=>columns>1&&i===0?44:16);
-    const flow=items.map((_,i)=>i).sort((a,b)=>anchors[a].y-anchors[b].y);
-    flow.forEach(i=>{
-      const nx=maxX>minX?(anchors[i].x-minX)/(maxX-minX):.5;
-      let col=Math.min(columns-1,Math.floor(nx*columns));
-      if(bottoms[col]>Math.min(...bottoms)+items[i].h*.7) col=bottoms.indexOf(Math.min(...bottoms));
-      positions[i]={x:4+col*(colW+gap)+(colW-items[i].w)/2,y:bottoms[col],w:items[i].w,h:items[i].h};
-      bottoms[col]+=items[i].h+24;
-    });
-    mapH=Math.max(items.length===1?240:420,Math.max(...bottoms)+8);
-  }
-  // Keep the old sky's relative direction as a placement preference. Allocate
-  // enough room for the larger glyphs instead of shrinking them on small screens.
-  for(let attempt=0;attempt<6&&!positions;attempt++){
-    const placed=[], candidate=[];
-    let fits=true;
+  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+  const nearest=anchors.map((p,i)=>Math.min(...anchors.filter((_,j)=>j!==i).map(q=>Math.hypot(p.x-q.x,p.y-q.y))));
+  const order=anchors.map((_,i)=>i).sort((a,b)=>nearest[a]-nearest[b]||anchors[b].x-anchors[a].x);
+  let positions=null, mapH=Math.max(labels.length>1?430:360,svgH+100), offset=0;
+  // Retry with extra label space, never by moving constellation centers.
+  if(labels.length<=12) for(let height=mapH;height<=Math.max(mapH,640);height+=70){
+    const top=(height-svgH)/2, boxes=bounds.map(b=>({...b,y:b.y+top}));
+    let options=[{positions:[],placed:[],score:0}];
     for(const i of order){
-      const {w,h}=items[i];
-      const nx=maxX>minX?(anchors[i].x-minX)/(maxX-minX):.5;
-      const ny=maxY>minY?(anchors[i].y-minY)/(maxY-minY):.25;
-      const targetX=8+nx*Math.max(0,width-w-16), targetY=20+ny*Math.max(0,mapH-h-40);
-      const xs=[clamp(targetX,4,width-w-4)], ys=[clamp(targetY,12,mapH-h-12)];
-      for(let x=4;x<=width-w-4;x+=8) xs.push(x);
-      for(let y=12;y<=mapH-h-12;y+=8) ys.push(y);
-      let best=null, score=Infinity;
-      for(const y of ys) for(const x of xs){
-        const rect={x,y,w,h}, padded={x:x-8,y:y-10,w:w+16,h:h+20};
-        if(placed.some(p=>overlaps(padded,p))) continue;
-        const distance=(x-targetX)**2+(y-targetY)**2;
-        if(distance<score){best=rect;score=distance;}
+      const {w,h}=sizes[i], cx=anchors[i].x, cy=anchors[i].y+top;
+      const xs=[...new Set([cx-w/2,cx-w-18,cx+18,4,width-w-4,(width-w)/2].map(x=>clamp(x,4,width-w-4)))];
+      const candidates=[];
+      for(let y=4;y<=height-h-4;y+=10) for(const x of xs){
+        const rect={x,y,w,h};
+        if(boxes.some(b=>overlaps(rect,b))) continue;
+        const distance=Math.hypot(x+w/2-cx,y+h/2-cy);
+        const other=Math.min(...anchors.filter((_,j)=>j!==i).map(a=>Math.hypot(x+w/2-a.x,y+h/2-a.y-top)));
+        candidates.push({rect,score:distance*distance+Math.max(0,distance-other)*100});
       }
-      if(!best){fits=false;break;}
-      placed.push(best);candidate[i]=best;
+      candidates.sort((a,b)=>a.score-b.score);
+      const next=[];
+      for(const option of options) for(const candidate of candidates.slice(0,60)){
+        const r=candidate.rect,padded={x:r.x-4,y:r.y-4,w:r.w+8,h:r.h+8};
+        if(option.placed.some(p=>overlaps(padded,p))) continue;
+        const positions=option.positions.slice();positions[i]=r;
+        next.push({positions,placed:[...option.placed,r],score:option.score+candidate.score});
+      }
+      next.sort((a,b)=>a.score-b.score);
+      options=next.slice(0,80);
+      if(!options.length) break;
     }
-    if(fits)positions=candidate;
-    else mapH+=64;
+    if(options.length){ positions=options[0].positions; mapH=height; offset=top; break; }
   }
-  // Unusually long names or dense years still retain every star and full name.
+  // Dense years retain every full name below the unchanged constellation map.
   if(!positions){
-    positions=[];
-    const gap=18, colW=(width-8-gap*(columns-1))/columns, bottoms=Array(columns).fill(16);
-    items.forEach((item,i)=>{
-      const col=bottoms.indexOf(Math.min(...bottoms));
-      positions[i]={x:4+col*(colW+gap)+(colW-item.w)/2,y:bottoms[col],w:item.w,h:item.h};
-      bottoms[col]+=item.h+24;
-    });
-    mapH=Math.max(...bottoms)+8;
+    map.classList.add("crowded"); positions=[]; offset=0;
+    const columns=width<260?1:2, gap=14, colWidth=(width-8-gap*(columns-1))/columns;
+    let y=svgH+28;
+    for(let i=0;i<labels.length;i+=columns){
+      let rowHeight=44;
+      for(let c=0;c<columns&&i+c<labels.length;c++){
+        const label=labels[i+c], w=Math.min(210,colWidth); label.style.width=w+"px";
+        const h=Math.max(44,label.offsetHeight); rowHeight=Math.max(rowHeight,h);
+        positions[i+c]={x:4+c*(colWidth+gap)+(colWidth-w)/2,y,w,h};
+      }
+      y+=rowHeight+10;
+    }
+    mapH=y+8;
   }
-  map.style.height=mapH+"px";svg.style.top="0";svg.style.height=mapH+"px";
-  svg.setAttribute("viewBox",`0 0 ${width} ${mapH}`);
+  map.style.height=mapH+"px"; svg.style.top=offset+"px"; svg.style.height=svgH+"px";
   labels.forEach((label,i)=>{
-    const p=positions[i],b=native[i], cx=p.x+p.w/2, cy=p.y+items[i].starH/2;
-    clusters[i].setAttribute("transform",`translate(${cx} ${cy}) scale(${scale}) translate(${-b.x-b.w/2} ${-b.y-b.h/2})`);
-    label.style.left=p.x+"px";label.style.top=p.y+items[i].starH+8+"px";
+    label.style.left=positions[i].x+"px";
+    label.style.top=positions[i].y+"px";
   });
 }
 
