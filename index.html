@@ -418,12 +418,18 @@ function chain(pts){
 const NS="http://www.w3.org/2000/svg";
 function el(tag,attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
 
+/* ── 両ビュー共通の星図: 日記の座標・星の大きさ・結び方を使う ── */
+function constellationGeometry(entry){
+  const W=100,H=64;
+  const seeds=starSeeds(entry),pts=placeStars(seeds,W,H,12);
+  let dd="";
+  chain(pts).forEach((idx,i)=>{ const p=pts[idx]; dd+=(i?"L":"M")+p.x.toFixed(2)+" "+p.y.toFixed(2)+" "; });
+  return {W,H,seeds,pts,pathData:dd.trim()};
+}
+
 /* ── ページの星図SVG ── */
 function pageStarSVG(entry){
-  const W=100,H=64,pad=12;
-  const seeds=starSeeds(entry);
-  const pts=placeStars(seeds,W,H,pad);
-  const order=chain(pts);
+  const {W,H,seeds,pts,pathData}=constellationGeometry(entry);
   const svg=el("svg",{viewBox:`0 0 ${W} ${H}`, "aria-hidden":"true"});
   const defs=el("defs",{});
   const filterId="ink-"+entry.date.replace(/[^0-9a-z]/gi,"");
@@ -432,9 +438,7 @@ function pageStarSVG(entry){
   filter.appendChild(el("feDisplacementMap",{in:"SourceGraphic",in2:"fiber",scale:"0.16",xChannelSelector:"R",yChannelSelector:"G"}));
   defs.appendChild(filter); svg.appendChild(defs);
   // lines
-  let dd="";
-  order.forEach((idx,i)=>{ const p=pts[idx]; dd+=(i?"L":"M")+p.x.toFixed(2)+" "+p.y.toFixed(2)+" "; });
-  const path=el("path",{d:dd.trim(), class:"cline",filter:`url(#${filterId})`}); svg.appendChild(path);
+  const path=el("path",{d:pathData, class:"cline",filter:`url(#${filterId})`}); svg.appendChild(path);
   // stars
   pts.forEach((p,i)=>{
     const c=el("circle",{cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:p.r.toFixed(2),class:"cstar twinkle",tabindex:"0",role:"img",filter:`url(#${filterId})`});
@@ -563,26 +567,21 @@ function renderSky(){
   const centers=placeClusters(yearEntries,W,H,pad);
   yearEntries.forEach(({entry, index:entryIdx},entryNo)=>{
     const {x:cx,y:cy,hitRadius}=centers[entryNo];
-    const scatter=42;
-    const seeds=starSeeds(entry);
-    const pts=[];
-    for(let i=0;i<seeds.length;i++){
-      const a=h01(seeds[i]+':a')*Math.PI*2;
-      const rr=(0.35+0.65*h01(seeds[i]+':rr'))*scatter;
-      pts.push({ x:cx+Math.cos(a)*rr, y:cy+Math.sin(a)*rr, r:1.4+1.6*h01(seeds[i]+':r2') });
-    }
-    const order=chain(pts);
+    const {W:shapeW,H:shapeH,pts,pathData}=constellationGeometry(entry);
     const labelId="sky-label-"+entry.date;
     const g=el("g",{class:"cluster",tabindex:"0",role:"button","aria-label":entry.name,"data-label-id":labelId});
-    g.appendChild(el("circle",{cx:cx.toFixed(1),cy:cy.toFixed(1),r:hitRadius.toFixed(1),class:"cluster-hit"}));
-    let dd=""; order.forEach((idx,i)=>{ const p=pts[idx]; dd+=(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)+" "; });
-    g.appendChild(el("path",{d:dd.trim(),class:"yline"}));
-    pts.forEach(p=> g.appendChild(el("circle",{cx:p.x.toFixed(1),cy:p.y.toFixed(1),r:p.r.toFixed(1),class:"ystar"})));
+    const radius=Math.max(hitRadius,...pts.map(p=>Math.hypot(p.x-shapeW/2,p.y-shapeH/2)+p.r+1));
+    g.appendChild(el("circle",{cx:cx.toFixed(1),cy:cy.toFixed(1),r:radius.toFixed(1),class:"cluster-hit"}));
+    // Move the diary shape to its annual center without stretching or recalculating it.
+    const shape=el("g",{class:"constellation-shape",transform:`translate(${cx-shapeW/2} ${cy-shapeH/2})`});
+    shape.appendChild(el("path",{d:pathData,class:"yline"}));
+    pts.forEach(p=> shape.appendChild(el("circle",{cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:p.r.toFixed(2),class:"ystar"})));
+    g.appendChild(shape);
     const jump=()=>{ spread=pageForEntry(entryIdx); renderSpread(); show("book"); updatePageUrl(entry); window.scrollTo({top:0,behavior:"smooth"}); };
     g.addEventListener("click",jump);
     g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); jump(); } });
     svg.appendChild(g);
-    const label=document.createElement("a"); label.className="sky-label"; label.id=labelId; label.href=`?date=${encodeURIComponent(entry.date)}`; label.textContent=entry.name; label.dataset.cx=cx; label.dataset.cy=cy; label.dataset.radius=hitRadius; label.dataset.entryIndex=entryIdx; label.addEventListener("click",e=>{ e.preventDefault(); jump(); });
+    const label=document.createElement("a"); label.className="sky-label"; label.id=labelId; label.href=`?date=${encodeURIComponent(entry.date)}`; label.textContent=entry.name; label.dataset.cx=cx; label.dataset.cy=cy; label.dataset.radius=radius; label.dataset.entryIndex=entryIdx; label.addEventListener("click",e=>{ e.preventDefault(); jump(); });
     const updateEmphasis=()=>{
       const active=label.matches(":hover,:focus")||g.matches(":hover,:focus");
       label.classList.toggle("active",active); g.classList.toggle("active",active);
