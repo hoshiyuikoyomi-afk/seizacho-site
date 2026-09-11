@@ -295,7 +295,6 @@
     .site-nav small{ font-size:8.5px; letter-spacing:.05em; }
     .mast .intro{ text-align:left; max-width:31em; }
     .sky-map{ min-height:390px; }
-  .sky-label{ max-width:104px; font-size:11px; }
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -603,20 +602,53 @@ function layoutSkyLabels(){
   const labels=[...map.querySelectorAll(".sky-label")];
   const clusters=[...svg.querySelectorAll(".cluster")];
   map.classList.remove("crowded"); map.style.minHeight="0";
-  const labelWidth=Math.min(width<440?104:180,(width-20)/2);
+  const labelWidth=Math.min(width<440?140:180,(width-20)/2);
   labels.forEach(label=>{ label.style.width=labelWidth+"px"; });
   const sizes=labels.map(label=>({w:labelWidth,h:Math.max(44,label.offsetHeight)}));
   const anchors=labels.map(label=>({x:+label.dataset.cx*scale,y:+label.dataset.cy*scale}));
-  // Preserve the original center positions and map proportions. A small uniform
-  // enlargement improves visibility without redistributing the constellations.
-  const glyphScale=1.22;
+  // Keep the desktop size and all centers. On narrow screens, stop the shapes
+  // shrinking with the whole map; limit enlargement where neighbors are close.
+  const baseGlyphScale=1.22, targetGlyphScale=Math.max(baseGlyphScale,.76/scale);
+  const glyphScales=clusters.map(()=>targetGlyphScale);
+  const shapeBounds=clusters.map(g=>g.querySelector('.constellation-shape').getBBox());
+  const shapeBox=(i,s)=>{
+    const b=shapeBounds[i],a=anchors[i];
+    return {x:a.x+(b.x-50)*s*scale,y:a.y+(b.y-32)*s*scale,w:b.width*s*scale,h:b.height*s*scale};
+  };
+  const collide=(a,b,gap)=>a.x<b.x+b.w+gap&&a.x+a.w+gap>b.x&&a.y<b.y+b.h+gap&&a.y+a.h+gap>b.y;
+  if(targetGlyphScale>baseGlyphScale){
+    for(let pass=0;pass<80;pass++){
+      const crowded=new Set();
+      const boxes=glyphScales.map((s,i)=>shapeBox(i,s));
+      boxes.forEach((b,i)=>{if(b.x<3||b.x+b.w>width-3) crowded.add(i);});
+      for(let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++){
+        if(collide(boxes[i],boxes[j],2)){ crowded.add(i); crowded.add(j); }
+      }
+      let changed=false;
+      crowded.forEach(i=>{const next=Math.max(baseGlyphScale,glyphScales[i]*.96);if(next<glyphScales[i]){glyphScales[i]=next;changed=true;}});
+      if(!changed) break;
+    }
+  }
   svg.setAttribute("viewBox","0 0 1000 600");
   clusters.forEach((g,i)=>{
     const cx=+labels[i].dataset.cx, cy=+labels[i].dataset.cy;
+    const glyphScale=glyphScales[i];
     g.setAttribute("transform",`translate(${cx} ${cy}) scale(${glyphScale}) translate(${-cx} ${-cy})`);
+    const circle=g.querySelector('circle.cluster-hit');
+    let hit=g.querySelector('.mobile-hit');
+    const mobileSize=targetGlyphScale>baseGlyphScale;
+    circle.style.display=mobileSize?'none':'';
+    if(mobileSize){
+      // A tight hit area avoids one enlarged circle intercepting another shape.
+      if(!hit){hit=el('rect',{class:'cluster-hit mobile-hit'});g.appendChild(hit);}
+      const b=shapeBounds[i],padding=.75/(glyphScale*scale);
+      const attrs={x:cx+b.x-50-padding,y:cy+b.y-32-padding,width:b.width+2*padding,height:b.height+2*padding};
+      for(const key in attrs) hit.setAttribute(key,attrs[key]);
+      hit.style.display='';
+    }else if(hit) hit.style.display='none';
   });
   const bounds=clusters.map((g,i)=>{
-    const b=g.getBBox(),cx=+labels[i].dataset.cx,cy=+labels[i].dataset.cy;
+    const b=g.getBBox(),cx=+labels[i].dataset.cx,cy=+labels[i].dataset.cy,glyphScale=glyphScales[i];
     return {x:(cx+(b.x-cx)*glyphScale)*scale-6,y:(cy+(b.y-cy)*glyphScale)*scale-6,w:b.width*glyphScale*scale+12,h:b.height*glyphScale*scale+12};
   });
   const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
