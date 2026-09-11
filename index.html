@@ -134,39 +134,48 @@
   .book{
     width:100%; position:relative;
     display:grid; grid-template-columns:1fr 1fr;
-    background:
-      linear-gradient(180deg, var(--washi-lit), var(--washi) 46%, var(--washi-edge));
-    border-radius:3px;
+    background:linear-gradient(180deg,#eadfc9 0 6px,#8c3033 6px,#70242a 72%,#5d2024);
+    padding:6px 6px 7px;
+    border:1px solid rgba(117,48,39,.22);
+    border-top-color:var(--washi-edge);
+    border-radius:5px;
     box-shadow:
       0 1px 0 rgba(255,255,255,.5) inset,
       0 22px 44px -22px rgba(80,60,30,.35),
       0 2px 8px rgba(80,60,30,.14);
-    overflow:hidden;
+    overflow:visible;
     animation:rise 1.1s cubic-bezier(.2,.7,.2,1) both;
   }
   @keyframes rise{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
 
-  /* washi grain */
+  /* paper block sits above the muted red cover and behind the writable leaves */
   .book::before{
-    content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-    mix-blend-mode:multiply;
+    content:""; position:absolute; inset:3px 2px 1px 4px; pointer-events:none; z-index:1;
+    border-radius:3px; border:1px solid rgba(137,98,63,.22);
+    background:#eadfc9;
+    box-shadow:0 2px 0 rgba(255,249,231,.7),0 4px 5px rgba(82,46,31,.16);
   }
   /* gutter shadow */
   .book::after{
     content:""; position:absolute; top:0; bottom:0; left:50%; width:60px; transform:translateX(-50%);
-    z-index:1; pointer-events:none;
-    background:linear-gradient(90deg, transparent, rgba(90,70,45,.16) 42%, rgba(90,70,45,.22) 50%, rgba(90,70,45,.16) 58%, transparent);
+    z-index:3; pointer-events:none;
+    background:linear-gradient(90deg, transparent, rgba(90,70,45,.11) 42%, rgba(90,70,45,.20) 50%, rgba(90,70,45,.11) 58%, transparent);
   }
-  /* 赤紐は見開き中央ではなく、帳面の外縁に置く */
-  .cord{ position:absolute; top:0; bottom:0; left:14px; width:2px; z-index:3; background:var(--shinku); opacity:.58; }
-  .cord i{ position:absolute; left:50%; transform:translateX(-50%); width:11px; height:2px; background:var(--shinku); opacity:.8; border-radius:1px; }
-  .cord i:nth-child(1){ top:18%; }
-  .cord i:nth-child(2){ top:38%; }
-  .cord i:nth-child(3){ top:58%; }
-  .cord i:nth-child(4){ top:78%; }
+  /* 赤紐は見開き中央ではなく、帳面の外縁に置く。穴・折返し・交差を一体で描く。 */
+  .cord{ position:absolute; top:10px; bottom:10px; left:-13px; width:32px; z-index:4; pointer-events:none; opacity:.92; overflow:visible; }
+  .cord-shaft{ position:absolute; top:0; bottom:0; left:14px; width:3px; background:linear-gradient(90deg,rgba(89,24,31,.7),var(--shinku) 45%,rgba(190,73,66,.55) 74%,rgba(89,24,31,.46)); border-radius:2px; box-shadow:1px 0 1px rgba(53,20,23,.24); }
+  .cord > svg{ display:block; overflow:visible; }
+  .cord .cord-knot-fixed{ position:absolute; top:22%; left:-4px; width:40px; height:88px; }
+  .cord .cord-shadow{ stroke:rgba(71,28,25,.23); stroke-width:3.2; fill:none; stroke-linecap:round; }
+  .cord .cord-line{ stroke:var(--shinku); stroke-width:2.25; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .cord .cord-highlight{ stroke:rgba(196,91,79,.5); stroke-width:.7; fill:none; stroke-linecap:round; }
+  .cord .cord-hole{ fill:#49352d; stroke:rgba(255,248,230,.58); stroke-width:1; }
+  .cord .cord-knot{ fill:var(--shinku); stroke:#681c25; stroke-width:.8; }
 
-  .page{ position:relative; z-index:2; padding:clamp(22px,3.4vw,40px) clamp(20px,3.2vw,38px); min-height:clamp(360px,52vw,480px); display:flex; flex-direction:column; }
+  .page{ position:relative; z-index:2; padding:clamp(22px,3.4vw,40px) clamp(20px,3.2vw,38px); min-height:clamp(360px,52vw,480px); display:flex; flex-direction:column; background-image:linear-gradient(105deg,rgba(255,252,242,.88),rgba(241,231,211,.80) 58%,rgba(219,201,173,.70)),url("assets/washi-paper.png"); background-size:100% 100%,640px 640px; background-position:center,center; box-shadow:1px 0 0 rgba(136,84,50,.22),-1px 0 0 rgba(136,84,50,.16),0 2px 0 rgba(109,61,39,.18),0 4px 0 rgba(243,232,210,.72),0 6px 5px rgba(91,47,31,.14); }
+  .page::before{ content:""; position:absolute; inset:0; z-index:0; background:linear-gradient(90deg,rgba(102,62,34,.08),transparent 10%,transparent 90%,rgba(102,62,34,.06)); pointer-events:none; }
+  .page::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:12px; z-index:0; background:linear-gradient(0deg,rgba(122,77,45,.10),transparent); pointer-events:none; }
+  .page > *{ position:relative; z-index:1; }
   .page.left{ padding-right:clamp(30px,4vw,52px); }
   .page.right{ padding-left:clamp(30px,4vw,52px); }
   .page.blank .date, .page.blank .field, .page.blank .memo, .page.blank .naming{ visibility:hidden; }
@@ -207,44 +216,54 @@
   .yohaku{ flex:1 1 auto; min-height:24px; } /* 余白 */
 
   /* star points / lines */
-  .cline{ stroke:var(--sumi); stroke-width:.3; opacity:.42; fill:none; stroke-linecap:round; }
-  .cstar{ fill:var(--sumi); }
-  .twinkle{ animation:tw 6s ease-in-out infinite; }
+  .cline{ stroke:#40372f; stroke-width:.42; opacity:.54; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .cstar{ fill:#302a25; stroke:rgba(91,65,50,.44); stroke-width:.15; }
+  .twinkle{ animation:none; }
   @keyframes tw{ 0%,100%{ opacity:.9; } 50%{ opacity:.55; } }
 
   /* ── year sky ── */
   .sky{
+    --star:#f7f4ed;
     width:100%; position:relative; display:none;
-    background:var(--yozora);
+    background:#080f19;
     padding:clamp(28px,4.4vw,42px) clamp(20px,4vw,46px) clamp(26px,4vw,38px);
+    overflow:hidden;
     animation:rise 1.1s cubic-bezier(.2,.7,.2,1) both;
   }
+  .sky > *{ position:relative; z-index:1; }
   .sky-head{ display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:12px; }
   .sky-years{ display:flex; gap:4px; justify-content:center; flex-wrap:wrap; }
   .sky-years button{
     border:0; border-bottom:1px solid transparent; background:transparent;
-    color:rgba(243,237,225,.62); font-family:"Zen Kaku Gothic New",sans-serif;
-    font-size:10px; letter-spacing:.12em; padding:5px 10px; cursor:pointer;
+    color:rgba(247,244,237,.76); font-family:"Zen Kaku Gothic New",sans-serif;
+    font-size:12px; letter-spacing:.12em; padding:5px 10px; min-height:44px; cursor:pointer;
   }
   .sky-years button[aria-pressed="true"]{ color:var(--washi); border-bottom-color:rgba(243,237,225,.48); }
   .sky.on{ display:block; }
   .book.off{ display:none; }
   .sky-title{ text-align:center; letter-spacing:.36em; text-indent:.36em; font-size:clamp(15px,2.8vw,19px); color:var(--washi); margin-bottom:6px; }
-  .sky-note{ text-align:center; font-family:"Zen Kaku Gothic New",sans-serif; font-weight:300; font-size:11px; letter-spacing:.16em; color:var(--kincha); margin-bottom:16px; }
+  .sky-note{ text-align:center; font-family:"Zen Kaku Gothic New",sans-serif; font-weight:300; font-size:11px; letter-spacing:.16em; color:rgba(247,244,237,.78); margin-bottom:16px; }
   .sky svg{ width:100%; height:auto; display:block; }
   .sky-scroll{ width:100%; }
+  .sky-map{ position:relative; width:100%; min-height:320px; }
+  .sky-map > svg{ position:absolute; left:0; top:0; }
   /* 旧・月別レイアウトの区画線は描画しない */
   .sky .month-cell,.sky .month-label{ display:none !important; }
-  .sky .yline{ stroke:var(--star); stroke-width:.7; opacity:.16; fill:none; stroke-linecap:round; }
+  .sky .yline{ stroke:var(--star); stroke-width:.75; opacity:.62; fill:none; stroke-linecap:round; vector-effect:non-scaling-stroke; }
   .cluster-hit{ fill:transparent; pointer-events:all; }
-  .cluster .ystar{ fill:var(--star); opacity:.62; transition:opacity .5s, fill .5s; }
+  .cluster .ystar{ fill:var(--star); opacity:.95; stroke:rgba(247,244,237,.48); stroke-width:.45; vector-effect:non-scaling-stroke; transition:opacity .5s, fill .5s; }
   .cluster .yline,.cluster .ystar,.cluster .ylabel{ pointer-events:none; }
-  .cluster .ylabel{ fill:var(--star); opacity:.30; font-family:"Shippori Mincho",serif; font-size:13px; letter-spacing:.06em; transition:opacity .5s; }
+  .cluster .ylabel{ display:none; }
+  .sky-label{ position:absolute; display:flex; align-items:center; justify-content:center; min-height:44px; padding:7px 10px; color:rgba(225,232,239,.70); font-family:"Shippori Mincho",serif; font-size:12px; line-height:1.35; letter-spacing:.04em; text-align:center; text-decoration:none; white-space:normal; z-index:3; text-shadow:none; }
+  .sky-label:hover,.sky-label:focus-visible,.sky-label.active{ color:#eeeef0; text-shadow:none; }
+  .cluster.active .ystar{ opacity:1; stroke:rgba(255,250,240,.62); stroke-width:.55; }
+  .cluster.active .yline{ opacity:.82; }
   .cluster:hover .ystar, .cluster:focus-within .ystar{ opacity:1; }
-  .cluster:hover .yline, .cluster:focus-within .yline{ opacity:.4; }
+  .cluster:hover .yline, .cluster:focus-within .yline{ opacity:.82; }
   .cluster:hover .ylabel, .cluster:focus-within .ylabel{ opacity:.85; }
   .cluster:focus-visible .cluster-hit{ stroke:rgba(243,237,225,.45); stroke-width:1; }
   .cluster{ cursor:pointer; }
+  #bookControls[hidden]{ display:none; }
 
   /* ── footer ── */
   footer.foot{ margin-top:clamp(26px,4vw,42px); text-align:center; max-width:520px; }
@@ -261,6 +280,9 @@
   @media (max-width:640px){
     .book{ grid-template-columns:1fr; }
     .book::after{ display:none; }
+    .book{ margin-left:3px; width:calc(100% - 3px); padding:5px 5px 6px; box-shadow:0 18px 34px -20px rgba(80,60,30,.42),0 2px 8px rgba(80,60,30,.14); }
+    .cord{ left:-8px; width:25px; }
+    .cord .cord-knot-fixed{ left:-3px; width:32px; height:70px; }
     .page.left{ padding-right:clamp(20px,3.2vw,38px); }
     .page.right{ padding-left:clamp(20px,3.2vw,38px); }
     .page{ min-height:auto; padding-top:clamp(26px,7vw,34px); padding-bottom:clamp(26px,7vw,34px); }
@@ -272,6 +294,8 @@
     .site-nav button,.site-nav a{ min-height:52px; font-size:12.5px; letter-spacing:.06em; padding:7px 5px; }
     .site-nav small{ font-size:8.5px; letter-spacing:.05em; }
     .mast .intro{ text-align:left; max-width:31em; }
+    .sky-map{ min-height:390px; }
+    .sky-label{ max-width:142px; font-size:12px; }
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -305,8 +329,13 @@
   </div>
 
   <!-- spread -->
-  <section class="book" id="book" aria-label="星座帳の見開き">
-    <span class="cord" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <section class="book" id="book" aria-label="星座帳の見開き">
+    <span class="cord" aria-hidden="true"><span class="cord-shaft"></span><svg class="cord-knot-fixed" viewBox="0 0 40 88" focusable="false">
+      <ellipse class="cord-hole" cx="20" cy="43" rx="5" ry="6"/>
+      <path class="cord-line" d="M19 43C4 33 3 19 9 15c7-5 14 5 10 25C26 21 32 10 37 16c5 7-2 20-17 27M20 47c-1 11-5 22-10 31M20 47c2 11 7 21 13 29"/>
+      <path class="cord-shadow" d="M20 42C5 32 4 20 10 16M20 43C25 22 32 11 36 17"/>
+      <circle class="cord-knot" cx="20" cy="44" r="4"/>
+    </svg></span>
     <div class="page left"  id="pageL"></div>
     <div class="page right" id="pageR"></div>
   </section>
@@ -396,13 +425,19 @@ function pageStarSVG(entry){
   const pts=placeStars(seeds,W,H,pad);
   const order=chain(pts);
   const svg=el("svg",{viewBox:`0 0 ${W} ${H}`, "aria-hidden":"true"});
+  const defs=el("defs",{});
+  const filterId="ink-"+entry.date.replace(/[^0-9a-z]/gi,"");
+  const filter=el("filter",{id:filterId,x:"-2",y:"-2",width:"104",height:"68",filterUnits:"userSpaceOnUse",primitiveUnits:"userSpaceOnUse","color-interpolation-filters":"sRGB"});
+  filter.appendChild(el("feTurbulence",{type:"fractalNoise",baseFrequency:"1.7",numOctaves:"2",seed:"7",result:"fiber"}));
+  filter.appendChild(el("feDisplacementMap",{in:"SourceGraphic",in2:"fiber",scale:"0.16",xChannelSelector:"R",yChannelSelector:"G"}));
+  defs.appendChild(filter); svg.appendChild(defs);
   // lines
   let dd="";
   order.forEach((idx,i)=>{ const p=pts[idx]; dd+=(i?"L":"M")+p.x.toFixed(2)+" "+p.y.toFixed(2)+" "; });
-  const path=el("path",{d:dd.trim(), class:"cline"}); svg.appendChild(path);
+  const path=el("path",{d:dd.trim(), class:"cline",filter:`url(#${filterId})`}); svg.appendChild(path);
   // stars
   pts.forEach((p,i)=>{
-    const c=el("circle",{cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:p.r.toFixed(2),class:"cstar twinkle",tabindex:"0",role:"img"});
+    const c=el("circle",{cx:p.x.toFixed(2),cy:p.y.toFixed(2),r:p.r.toFixed(2),class:"cstar twinkle",tabindex:"0",role:"img",filter:`url(#${filterId})`});
     c.style.animationDelay=(h01(seeds[i]+':d')*6).toFixed(2)+"s";
     svg.appendChild(c);
   });
@@ -522,6 +557,7 @@ function placeClusters(items,W,H,pad){
 function renderSky(){
   const W=1000,H=600,pad=80;
   const canvas=document.getElementById("skyCanvas"); canvas.innerHTML="";
+  const map=document.createElement("div"); map.className="sky-map";
   const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,"aria-hidden":"false","aria-label":"一年の星座"});
   const yearEntries=ENTRIES.map((entry,index)=>({entry,index})).filter(x=>x.entry.date.startsWith(selectedYear+"-"));
   const centers=placeClusters(yearEntries,W,H,pad);
@@ -536,23 +572,126 @@ function renderSky(){
       pts.push({ x:cx+Math.cos(a)*rr, y:cy+Math.sin(a)*rr, r:1.4+1.6*h01(seeds[i]+':r2') });
     }
     const order=chain(pts);
-    const g=el("g",{class:"cluster",tabindex:"0",role:"button","aria-label":entry.name});
+    const labelId="sky-label-"+entry.date;
+    const g=el("g",{class:"cluster",tabindex:"0",role:"button","aria-label":entry.name,"data-label-id":labelId});
     g.appendChild(el("circle",{cx:cx.toFixed(1),cy:cy.toFixed(1),r:hitRadius.toFixed(1),class:"cluster-hit"}));
     let dd=""; order.forEach((idx,i)=>{ const p=pts[idx]; dd+=(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)+" "; });
     g.appendChild(el("path",{d:dd.trim(),class:"yline"}));
     pts.forEach(p=> g.appendChild(el("circle",{cx:p.x.toFixed(1),cy:p.y.toFixed(1),r:p.r.toFixed(1),class:"ystar"})));
-    // ラベル(公開層なので名前は出してよい)
-    const maxY=Math.max(...pts.map(p=>p.y));
-    const t=el("text",{x:cx.toFixed(1),y:(maxY+20).toFixed(1),"text-anchor":"middle",class:"ylabel"});
-    t.textContent=entry.name; g.appendChild(t);
     const jump=()=>{ spread=pageForEntry(entryIdx); renderSpread(); show("book"); updatePageUrl(entry); window.scrollTo({top:0,behavior:"smooth"}); };
     g.addEventListener("click",jump);
     g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); jump(); } });
     svg.appendChild(g);
+    const label=document.createElement("a"); label.className="sky-label"; label.id=labelId; label.href=`?date=${encodeURIComponent(entry.date)}`; label.textContent=entry.name; label.dataset.cx=cx; label.dataset.cy=cy; label.dataset.radius=hitRadius; label.dataset.entryIndex=entryIdx; label.addEventListener("click",e=>{ e.preventDefault(); jump(); });
+    const updateEmphasis=()=>{
+      const active=label.matches(":hover,:focus")||g.matches(":hover,:focus");
+      label.classList.toggle("active",active); g.classList.toggle("active",active);
+    };
+    [label,g].forEach(node=>["mouseenter","mouseleave","focus","blur"].forEach(event=>node.addEventListener(event,updateEmphasis)));
+    map.appendChild(label);
   });
-  canvas.appendChild(svg);
+  map.insertBefore(svg,map.firstChild); canvas.appendChild(map);
+  observeSkyLabels();
+  requestAnimationFrame(layoutSkyLabels);
   document.getElementById("skyTitle").textContent=[...selectedYear].map(c=>K[+c]).join("")+"年の空";
   renderYearButtons();
+}
+
+function layoutSkyLabels(){
+  const map=document.querySelector(".sky-map"), svg=map&&map.querySelector(":scope > svg");
+  if(!map||!svg||!map.clientWidth) return;
+  const width=map.clientWidth;
+  const labels=[...map.querySelectorAll(".sky-label")];
+  const clusters=[...svg.querySelectorAll(".cluster")];
+  map.style.minHeight="0";
+  const labelWidth=Math.min(width<600?142:176,width-16);
+  labels.forEach(label=>{ label.style.width=labelWidth+"px"; });
+  // The stored point geometry is unchanged. Only the annual presentation moves
+  // and uniformly scales each whole constellation, with its name directly below.
+  clusters.forEach(g=>g.removeAttribute("transform"));
+  const native=clusters.map(g=>{const b=g.getBBox();return {x:b.x,y:b.y,w:b.width,h:b.height};});
+  const scale=Math.min(width<600?1.12:1.45,(labelWidth-12)/Math.max(1,...native.map(b=>b.w)));
+  const items=labels.map((label,i)=>({w:labelWidth,h:native[i].h*scale+8+Math.max(44,label.offsetHeight),starH:native[i].h*scale}));
+  const anchors=labels.map(label=>({x:+label.dataset.cx,y:+label.dataset.cy}));
+  const minX=Math.min(...anchors.map(p=>p.x)), maxX=Math.max(...anchors.map(p=>p.x));
+  const minY=Math.min(...anchors.map(p=>p.y)), maxY=Math.max(...anchors.map(p=>p.y));
+  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+  const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+  const columns=Math.min(Math.max(1,items.length),Math.max(1,Math.floor((width-8+18)/(labelWidth+18))));
+  const rows=Math.ceil(items.length/columns);
+  let mapH=items.length?Math.max(items.length===1?240:420,rows*(Math.max(...items.map(p=>p.h))+24)+32):180;
+  let positions=null;
+  const order=items.map((_,i)=>i).sort((a,b)=>items[b].h-items[a].h||anchors[a].y-anchors[b].y);
+  if(width<600&&items.length){
+    // A narrow sky uses staggered columns so each enlarged glyph and its name
+    // remain together without sending later entries far down an empty canvas.
+    positions=[];
+    const gap=18, colW=(width-8-gap*(columns-1))/columns;
+    const bottoms=Array.from({length:columns},(_,i)=>columns>1&&i===0?44:16);
+    const flow=items.map((_,i)=>i).sort((a,b)=>anchors[a].y-anchors[b].y);
+    flow.forEach(i=>{
+      const nx=maxX>minX?(anchors[i].x-minX)/(maxX-minX):.5;
+      let col=Math.min(columns-1,Math.floor(nx*columns));
+      if(bottoms[col]>Math.min(...bottoms)+items[i].h*.7) col=bottoms.indexOf(Math.min(...bottoms));
+      positions[i]={x:4+col*(colW+gap)+(colW-items[i].w)/2,y:bottoms[col],w:items[i].w,h:items[i].h};
+      bottoms[col]+=items[i].h+24;
+    });
+    mapH=Math.max(items.length===1?240:420,Math.max(...bottoms)+8);
+  }
+  // Keep the old sky's relative direction as a placement preference. Allocate
+  // enough room for the larger glyphs instead of shrinking them on small screens.
+  for(let attempt=0;attempt<6&&!positions;attempt++){
+    const placed=[], candidate=[];
+    let fits=true;
+    for(const i of order){
+      const {w,h}=items[i];
+      const nx=maxX>minX?(anchors[i].x-minX)/(maxX-minX):.5;
+      const ny=maxY>minY?(anchors[i].y-minY)/(maxY-minY):.25;
+      const targetX=8+nx*Math.max(0,width-w-16), targetY=20+ny*Math.max(0,mapH-h-40);
+      const xs=[clamp(targetX,4,width-w-4)], ys=[clamp(targetY,12,mapH-h-12)];
+      for(let x=4;x<=width-w-4;x+=8) xs.push(x);
+      for(let y=12;y<=mapH-h-12;y+=8) ys.push(y);
+      let best=null, score=Infinity;
+      for(const y of ys) for(const x of xs){
+        const rect={x,y,w,h}, padded={x:x-8,y:y-10,w:w+16,h:h+20};
+        if(placed.some(p=>overlaps(padded,p))) continue;
+        const distance=(x-targetX)**2+(y-targetY)**2;
+        if(distance<score){best=rect;score=distance;}
+      }
+      if(!best){fits=false;break;}
+      placed.push(best);candidate[i]=best;
+    }
+    if(fits)positions=candidate;
+    else mapH+=64;
+  }
+  // Unusually long names or dense years still retain every star and full name.
+  if(!positions){
+    positions=[];
+    const gap=18, colW=(width-8-gap*(columns-1))/columns, bottoms=Array(columns).fill(16);
+    items.forEach((item,i)=>{
+      const col=bottoms.indexOf(Math.min(...bottoms));
+      positions[i]={x:4+col*(colW+gap)+(colW-item.w)/2,y:bottoms[col],w:item.w,h:item.h};
+      bottoms[col]+=item.h+24;
+    });
+    mapH=Math.max(...bottoms)+8;
+  }
+  map.style.height=mapH+"px";svg.style.top="0";svg.style.height=mapH+"px";
+  svg.setAttribute("viewBox",`0 0 ${width} ${mapH}`);
+  labels.forEach((label,i)=>{
+    const p=positions[i],b=native[i], cx=p.x+p.w/2, cy=p.y+items[i].starH/2;
+    clusters[i].setAttribute("transform",`translate(${cx} ${cy}) scale(${scale}) translate(${-b.x-b.w/2} ${-b.y-b.h/2})`);
+    label.style.left=p.x+"px";label.style.top=p.y+items[i].starH+8+"px";
+  });
+}
+
+let skyLabelObserver=null;
+let skyLabelWidth=0;
+function observeSkyLabels(){
+  if(skyLabelObserver) skyLabelObserver.disconnect();
+  const map=document.querySelector(".sky-map"); if(!map||!window.ResizeObserver) return;
+  skyLabelWidth=map.clientWidth;
+  skyLabelObserver=new ResizeObserver(entries=>{ const width=entries[0].contentRect.width; if(width&&Math.abs(width-skyLabelWidth)>0.5){ skyLabelWidth=width; requestAnimationFrame(layoutSkyLabels); } }); skyLabelObserver.observe(map);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>requestAnimationFrame(layoutSkyLabels));
 }
 
 /* ── ビュー切り替え ── */
