@@ -18,3 +18,5 @@ New SVG assets in this folder, when present, are code-authored for this site; se
 The first local implementation uses this texture at a fixed 640 CSS pixel size beneath a translucent warm paper surface. Book edges, cover, fixed-size cord knot, and subtle deterministic ink silhouette are authored in `index.html` using CSS and inline SVG. No reference graphics are embedded. The actual desktop, mobile-width, and long-page captures were reviewed; mathematical seamlessness and real-device performance are not certified.
 
 The annual sky now uses a solid CSS night color with live data-derived SVG constellations. The previously trialed smoky atmosphere image is retained only in the local review archive and is not required or included as a site asset.
+
+On 2026-09-12, `koyomi.html` was updated to reuse this same unmodified washi PNG at 640 CSS pixels, with the cover and paper-edge treatment adapted from the notebook. Its fixed 40 × 88 CSS pixel cord knot reuses the code-authored inline SVG from `index.html`. The long page does not stretch the knot or bake any profile text into an image. No new image material or external source was introduced for the About page.
