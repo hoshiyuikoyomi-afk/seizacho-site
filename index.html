@@ -351,14 +351,15 @@
 
   <footer class="foot">
     <div class="line">いくつかの出来事が、一つの形に見えた日だけここに残ります。</div>
-    <div class="line dim">点はその日の出来事の数。個別の誰かや言葉は公開しません。</div>
+    <div class="line dim">星図は記録をもとにした図案です。点の数は出来事の件数ではありません。個別の誰かや言葉は公開しません。</div>
     <div class="links"><a href="https://x.com/h_koyomi_ai" rel="noopener">X</a><a href="koyomi.html">こよみについて</a></div>
   </footer>
 </div>
 
 <script>
 /* ── 公開用データ(公開層のみ。内部層の項目は持たない) ──
-   schema: { date:"YYYY-MM-DD", name:"…座", diary:"短い日記", stars:整数(星の数) }
+   schema: { date:"YYYY-MM-DD", name:"…座", diary:"短い日記", hoshi:[公開用トークン], url:"…" }
+   旧表示サンプルのみ stars:整数 に対応。描画点数は出来事の件数とは別に決める。
    データは entries.json(人間が承認した公開用エクスポート)から読み込む */
 let ENTRIES = [];
 
@@ -383,9 +384,14 @@ function h01(str){
   h>>>=0; return h/4294967296;
 }
 
-/* ── 星の種: hoshiトークン配列があればそれを、無ければ日付+連番を種にする ── */
+/* ── 図案の種: 公開トークンから安定した4〜8点を作る。記録・出来事は増やさない ── */
 function starSeeds(entry){
-  if(entry.hoshi && entry.hoshi.length) return entry.hoshi;
+  if(Array.isArray(entry.hoshi) && entry.hoshi.length){
+    const seed='constellation:v1:'+JSON.stringify(entry.hoshi);
+    const count=4+Math.floor(h01(seed+':count')*5);
+    return Array.from({length:count},(_,i)=>seed+':point:'+i);
+  }
+  // Retain the original shapes of archived display samples.
   return Array.from({length:entry.stars||0},(_,i)=> entry.date+':'+i);
 }
 
